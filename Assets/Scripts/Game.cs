@@ -84,6 +84,7 @@ public class Game : MonoBehaviour
 
     private void GenerateMineCells()
     {
+        numberOfMines = Mathf.Min(numberOfMines, height * width - 1);
         for (int index = 0; index < numberOfMines; ++index)
         {
             int linearPosition = Random.Range(0, height * width);
@@ -92,6 +93,11 @@ public class Game : MonoBehaviour
             Debug.Log("LinearPosition: " + linearPosition.ToString());
             Debug.Log("Col: " + col.ToString() + " Row: " + row.ToString());
 
+            if (state[col, row].type != Cell.Type.Empty)
+            {
+                --index;
+                continue;
+            }
             state[col, row].type = Cell.Type.Mine;
             state[col, row].status = Cell.Status.Revealed;
         }
