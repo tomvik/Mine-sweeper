@@ -169,7 +169,6 @@ public class Game : MonoBehaviour
 
         if (board.CoordIsWithinBoard(cellPosition.x, cellPosition.y))
         {
-            Debug.Log("Within board again");
             switch (state[cellPosition.x, cellPosition.y].status)
             {
                 case Cell.Status.Flagged:
@@ -192,17 +191,28 @@ public class Game : MonoBehaviour
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition);
 
-        if (board.CoordIsWithinBoard(cellPosition.x, cellPosition.y))
+        RevealCellWithCoordinates(cellPosition.x, cellPosition.y);
+    }
+
+    private void RevealCellWithCoordinates(int col, int row)
+    {
+        if (board.CoordIsWithinBoard(col, row))
         {
-            Debug.Log("Within board again");
-            switch (state[cellPosition.x, cellPosition.y].status)
+            switch (state[col, row].status)
             {
-                case Cell.Status.Flagged:
-                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Revealed;
-                    break;
                 case Cell.Status.Hidden:
-                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Revealed;
+                    state[col, row].status = Cell.Status.Revealed;
+                    if (state[col, row].type == Cell.Type.Empty)
+                    {
+                        for (int index = 0; index < 8; ++index)
+                        {
+                            int x = col + adjacentDeltas[index, 0];
+                            int y = row + adjacentDeltas[index, 1];
+                            RevealCellWithCoordinates(x, y);
+                        }
+                    }
                     break;
+                case Cell.Status.Flagged:
                 case Cell.Status.Exploded:
                 case Cell.Status.Revealed:
                     break;
@@ -210,9 +220,9 @@ public class Game : MonoBehaviour
                     break;
             }
 
-            if (state[cellPosition.x, cellPosition.y].type == Cell.Type.Mine)
+            if (state[col, row].type == Cell.Type.Mine)
             {
-                state[cellPosition.x, cellPosition.y].status = Cell.Status.Exploded;
+                state[col, row].status = Cell.Status.Exploded;
             }
         }
     }
