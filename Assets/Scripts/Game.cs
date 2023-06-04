@@ -27,6 +27,7 @@ public class Game : MonoBehaviour
     private void NewGame()
     {
         gameOver = false;
+        gameWon = false;
         hiddenCellsNumber = width * height;
 
         state = new Cell[width, height];
@@ -172,6 +173,10 @@ public class Game : MonoBehaviour
                 RevealCell();
                 board.Draw(state);
             }
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            NewGame();
         }
     }
 
