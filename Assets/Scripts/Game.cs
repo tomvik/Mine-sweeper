@@ -204,12 +204,11 @@ public class Game : MonoBehaviour
                     state[col, row].status = Cell.Status.Revealed;
                     if (state[col, row].type == Cell.Type.Empty)
                     {
-                        for (int index = 0; index < 8; ++index)
-                        {
-                            int x = col + adjacentDeltas[index, 0];
-                            int y = row + adjacentDeltas[index, 1];
-                            RevealCellWithCoordinates(x, y);
-                        }
+                        
+                        RevealCellWithCoordinates(col-1, row);
+                        RevealCellWithCoordinates(col, row+1);
+                        RevealCellWithCoordinates(col+1, row);
+                        RevealCellWithCoordinates(col, row-1);
                     }
                     break;
                 case Cell.Status.Flagged:
