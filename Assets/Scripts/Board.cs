@@ -38,7 +38,6 @@ public class Board : MonoBehaviour
                 tilemap.SetTile(cell.position, GetTile(cell));
             }
         }
-        tilemap.RefreshAllTiles();
     }
 
     private Tile GetTile(Cell cell)
@@ -96,5 +95,10 @@ public class Board : MonoBehaviour
             default:
                 return null;
         }
+    }
+
+    public bool CoordIsWithinBoard(int col, int row)
+    {
+        return tilemap.HasTile(new Vector3Int(col, row, 0));
     }
 }
