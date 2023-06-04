@@ -99,7 +99,6 @@ public class Game : MonoBehaviour
                 continue;
             }
             state[col, row].type = Cell.Type.Mine;
-            state[col, row].status = Cell.Status.Revealed;
         }
     }
 
@@ -116,7 +115,6 @@ public class Game : MonoBehaviour
                     {
                         state[col, row].type = Cell.Type.Number;
                         state[col, row].number = adjacentMines;
-                        state[col, row].status = Cell.Status.Revealed;
                     }
                 }
             }
@@ -146,5 +144,76 @@ public class Game : MonoBehaviour
         }
 
         return minesCount;
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            Debug.Log("Right click");
+            FlagCell();
+            board.Draw(state);
+        }
+        if (Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("Left click");
+            RevealCell();
+            board.Draw(state);
+        }
+    }
+
+    private void FlagCell()
+    {
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition);
+
+        if (board.CoordIsWithinBoard(cellPosition.x, cellPosition.y))
+        {
+            Debug.Log("Within board again");
+            switch (state[cellPosition.x, cellPosition.y].status)
+            {
+                case Cell.Status.Flagged:
+                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Hidden;
+                    break;
+                case Cell.Status.Hidden:
+                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Flagged;
+                    break;
+                case Cell.Status.Exploded:
+                case Cell.Status.Revealed:
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void RevealCell()
+    {
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition);
+
+        if (board.CoordIsWithinBoard(cellPosition.x, cellPosition.y))
+        {
+            Debug.Log("Within board again");
+            switch (state[cellPosition.x, cellPosition.y].status)
+            {
+                case Cell.Status.Flagged:
+                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Revealed;
+                    break;
+                case Cell.Status.Hidden:
+                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Revealed;
+                    break;
+                case Cell.Status.Exploded:
+                case Cell.Status.Revealed:
+                    break;
+                default:
+                    break;
+            }
+
+            if (state[cellPosition.x, cellPosition.y].type == Cell.Type.Mine)
+            {
+                state[cellPosition.x, cellPosition.y].status = Cell.Status.Exploded;
+            }
+        }
     }
 }
