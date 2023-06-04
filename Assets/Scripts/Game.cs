@@ -8,7 +8,11 @@ public class Game : MonoBehaviour
 
     private Board board;
     private int[,] adjacentDeltas;
+    private int[,] minePositions;
     private Cell[,] state;
+    private bool gameOver = false;
+    private bool gameWon = false;
+    private int hiddenCellsNumber = 0;
 
     private void Awake()
     {
@@ -22,6 +26,9 @@ public class Game : MonoBehaviour
 
     private void NewGame()
     {
+        gameOver = false;
+        hiddenCellsNumber = width * height;
+
         state = new Cell[width, height];
         GenerateAdjacentDeltas();
 
@@ -84,6 +91,7 @@ public class Game : MonoBehaviour
 
     private void GenerateMineCells()
     {
+        minePositions = new int [numberOfMines, 2];
         numberOfMines = Mathf.Min(numberOfMines, height * width - 1);
         for (int index = 0; index < numberOfMines; ++index)
         {
@@ -98,6 +106,8 @@ public class Game : MonoBehaviour
                 --index;
                 continue;
             }
+            minePositions[index,0] = col;
+            minePositions[index,1] = row;
             state[col, row].type = Cell.Type.Mine;
         }
     }
@@ -148,17 +158,20 @@ public class Game : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (!gameOver && !gameWon)
         {
-            Debug.Log("Right click");
-            FlagCell();
-            board.Draw(state);
-        }
-        if (Input.GetMouseButtonDown(0))
-        {
-            Debug.Log("Left click");
-            RevealCell();
-            board.Draw(state);
+            if (Input.GetMouseButtonDown(1))
+            {
+                Debug.Log("Right click");
+                FlagCell();
+                board.Draw(state);
+            }
+            if (Input.GetMouseButtonDown(0))
+            {
+                Debug.Log("Left click");
+                RevealCell();
+                board.Draw(state);
+            }
         }
     }
 
@@ -167,15 +180,23 @@ public class Game : MonoBehaviour
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition);
 
-        if (board.CoordIsWithinBoard(cellPosition.x, cellPosition.y))
+        FlagCellWithCoordinates(cellPosition.x, cellPosition.y);
+    }
+
+    private void FlagCellWithCoordinates(int col, int row)
+    {
+        if (board.CoordIsWithinBoard(col, row))
         {
-            switch (state[cellPosition.x, cellPosition.y].status)
+            switch (state[col, row].status)
             {
                 case Cell.Status.Flagged:
-                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Hidden;
+                    if (!gameWon)
+                    {
+                        state[col, row].status = Cell.Status.Hidden;
+                    }
                     break;
                 case Cell.Status.Hidden:
-                    state[cellPosition.x, cellPosition.y].status = Cell.Status.Flagged;
+                    state[col, row].status = Cell.Status.Flagged;
                     break;
                 case Cell.Status.Exploded:
                 case Cell.Status.Revealed:
@@ -193,6 +214,7 @@ public class Game : MonoBehaviour
 
         RevealCellWithCoordinates(cellPosition.x, cellPosition.y);
         CheckIfExploded(cellPosition.x, cellPosition.y);
+        CheckIfWon();
     }
 
     private void RevealCellWithCoordinates(int col, int row)
@@ -202,6 +224,7 @@ public class Game : MonoBehaviour
             switch (state[col, row].status)
             {
                 case Cell.Status.Hidden:
+                    --hiddenCellsNumber;
                     state[col, row].status = Cell.Status.Revealed;
                     if (state[col, row].type == Cell.Type.Empty)
                     {
@@ -213,6 +236,11 @@ public class Game : MonoBehaviour
                     }
                     break;
                 case Cell.Status.Flagged:
+                    if (gameOver)
+                    {
+                        state[col, row].status = Cell.Status.Revealed;
+                    }
+                    break;
                 case Cell.Status.Exploded:
                 case Cell.Status.Revealed:
                     break;
@@ -228,6 +256,7 @@ public class Game : MonoBehaviour
         {
             if (state[col, row].type == Cell.Type.Mine)
             {
+                gameOver = true;
                 state[col, row].status = Cell.Status.Exploded;
                 for (int x = 0; x < width; ++x)
                 {
@@ -236,6 +265,22 @@ public class Game : MonoBehaviour
                         RevealCellWithCoordinates(x, y);
                     }
                 }
+            }
+        }
+    }
+
+    private void CheckIfWon()
+    {
+        gameWon = !gameOver && hiddenCellsNumber == numberOfMines;
+        if (gameWon)
+        {
+            Debug.Log("Won!");
+            for (int index = 0; index < numberOfMines; ++index)
+            {
+                int col = minePositions[index, 0];
+                int row = minePositions[index, 1];
+
+                FlagCellWithCoordinates(col, row);
             }
         }
     }
