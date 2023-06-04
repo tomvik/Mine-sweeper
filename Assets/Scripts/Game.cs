@@ -21,9 +21,12 @@ public class Game : MonoBehaviour
     private void NewGame()
     {
         state = new Cell[width, height];
+
         GenerateBlankCells();
 
         Camera.main.transform.position = new Vector3(width / 2f, height / 2f, -10f);
+        Camera.main.orthographicSize = (float)(Mathf.Max(width, height)) * 0.6f;
+
         board.Draw(state);
     }
 
