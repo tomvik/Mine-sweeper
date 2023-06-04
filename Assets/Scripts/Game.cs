@@ -192,6 +192,7 @@ public class Game : MonoBehaviour
         Vector3Int cellPosition = board.tilemap.WorldToCell(worldPosition);
 
         RevealCellWithCoordinates(cellPosition.x, cellPosition.y);
+        CheckIfExploded(cellPosition.x, cellPosition.y);
     }
 
     private void RevealCellWithCoordinates(int col, int row)
@@ -218,10 +219,23 @@ public class Game : MonoBehaviour
                 default:
                     break;
             }
+        }
+    }
 
+    private void CheckIfExploded(int col, int row)
+    {
+        if (board.CoordIsWithinBoard(col, row))
+        {
             if (state[col, row].type == Cell.Type.Mine)
             {
                 state[col, row].status = Cell.Status.Exploded;
+                for (int x = 0; x < width; ++x)
+                {
+                    for (int y = 0; y < height; ++y)
+                    {
+                        RevealCellWithCoordinates(x, y);
+                    }
+                }
             }
         }
     }
