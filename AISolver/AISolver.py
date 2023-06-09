@@ -53,7 +53,7 @@ def GetOnlyHiddenPos(board, col, row):
                 return x, y
 
 def WriteProb(probabilities, col, row, prob):
-    if probabilities[col, row] < prob:
+    if probabilities[col, row] < prob and probabilities[col, row] != 0:
         probabilities[col, row] = prob
 
 def GetSameNumberOfHiddenProb(board, col, row, probabilities):
@@ -72,9 +72,16 @@ def GetSameNumberOfHiddenProb(board, col, row, probabilities):
                     adjacentFlaggedTilesCount += 1
 
     if board[col, row] == adjacentFlaggedTilesCount:
+        for deltaX in range(-1,2):
+            for deltaY in range(-1,2):
+                x = col + deltaX
+                y = row + deltaY
+                if IsValidPos(x, y):
+                    if board[x, y] == HIDDEN:
+                        probabilities[x, y] = 0
         return
 
-    if board[col, row] == adjacentHiddenTilesCount:
+    if board[col, row] - adjacentFlaggedTilesCount == adjacentHiddenTilesCount:
         hiddenX, hiddenY = GetOnlyHiddenPos(board, col, row)
         WriteProb(probabilities, hiddenX, hiddenY, 100)
 
@@ -84,13 +91,11 @@ def GetProbabilites(board):
     global height
 
     probabilities = np.ones((width, height))
-    # print(probabilities)
 
     for col in range(width):
         for row in range(height):
             if IsNumberTile(board[col, row]):
                 GetSameNumberOfHiddenProb(board, col, row, probabilities)
-    print(probabilities)
     return probabilities
 
 def GetBestTileToFlag(probabilities):
@@ -103,6 +108,22 @@ def GetBestTileToFlag(probabilities):
     for col in range(width):
         for row in range(height):
             if probabilities[col, row] > bestProb:
+                bestProb = probabilities[col, row]
+                bestX = col
+                bestY = row
+
+    return bestX, bestY
+
+def GetBestTileToClick(probabilities):
+    global width
+    global height
+
+    bestProb = 1000
+    bestX = 0
+    bestY = 0
+    for col in range(width):
+        for row in range(height):
+            if probabilities[col, row] < bestProb:
                 bestProb = probabilities[col, row]
                 bestX = col
                 bestY = row
@@ -126,10 +147,13 @@ def SolveMineSweeper():
         print(board)
 
         probabilities = GetProbabilites(board)
+        print(probabilities)
 
         x, y = GetBestTileToFlag(probabilities)
+        print("Best tile to flag:", x, y)
 
-        ClickTile(x, y)
+        x, y = GetBestTileToClick(probabilities)
+        print("Best tile to click:", x, y)
 
 if __name__ == "__main__":
     SolveMineSweeper()
