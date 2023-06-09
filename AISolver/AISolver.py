@@ -102,9 +102,9 @@ def GetBestTileToFlag(probabilities):
     global width
     global height
 
-    bestProb = 0
-    bestX = 0
-    bestY = 0
+    bestProb = 99
+    bestX = -1
+    bestY = -1
     for col in range(width):
         for row in range(height):
             if probabilities[col, row] > bestProb:
@@ -118,9 +118,9 @@ def GetBestTileToClick(probabilities):
     global width
     global height
 
-    bestProb = 1000
-    bestX = 0
-    bestY = 0
+    bestProb = 1
+    bestX = -1
+    bestY = -1
     for col in range(width):
         for row in range(height):
             if probabilities[col, row] < bestProb:
