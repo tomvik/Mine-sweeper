@@ -6,6 +6,8 @@ public class Game : MonoBehaviour
     public int height = 16;
     public int numberOfMines = 16;
 
+    private string defaultHeaderText = "";
+
     private Board board;
     private int[,] adjacentDeltas;
     private int[,] minePositions;
@@ -30,6 +32,11 @@ public class Game : MonoBehaviour
         gameWon = false;
         hiddenCellsNumber = width * height;
 
+        defaultHeaderText = width.ToString() + "," +
+                            height.ToString() + "," +
+                            hiddenCellsNumber.ToString() + "," +
+                            numberOfMines.ToString();
+
         state = new Cell[width, height];
         GenerateAdjacentDeltas();
 
@@ -39,11 +46,11 @@ public class Game : MonoBehaviour
         GenerateBlankCells();
 
         // We need to draw it first to utilize the tilemap method HasTile.
-        board.Draw(state);
+        board.Draw(state, "");
         GenerateMineCells();
         GenerateNumberCells();
 
-        board.Draw(state);
+        board.Draw(state, defaultHeaderText);
     }
 
     private void GenerateAdjacentDeltas()
@@ -85,6 +92,7 @@ public class Game : MonoBehaviour
                 Cell cell = new Cell();
                 cell.position = new Vector3Int(col, row, 0);
                 cell.type = Cell.Type.Empty;
+                cell.number = 0;
                 state[col, row] = cell;
             }
         }
@@ -109,6 +117,7 @@ public class Game : MonoBehaviour
             }
             minePositions[index,0] = col;
             minePositions[index,1] = row;
+            state[col, row].number = -1;
             state[col, row].type = Cell.Type.Mine;
         }
     }
@@ -165,13 +174,21 @@ public class Game : MonoBehaviour
             {
                 Debug.Log("Right click");
                 FlagCell();
-                board.Draw(state);
+                defaultHeaderText = width.ToString() + "," +
+                                    height.ToString() + "," +
+                                    hiddenCellsNumber.ToString() + "," +
+                                    numberOfMines.ToString();
+                board.Draw(state, defaultHeaderText);
             }
             if (Input.GetMouseButtonDown(0))
             {
                 Debug.Log("Left click");
                 RevealCell();
-                board.Draw(state);
+                defaultHeaderText = width.ToString() + "," +
+                                    height.ToString() + "," +
+                                    hiddenCellsNumber.ToString() + "," +
+                                    numberOfMines.ToString();
+                board.Draw(state, defaultHeaderText);
             }
         }
         if (Input.GetKeyDown(KeyCode.R))

@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -25,10 +26,12 @@ public class Board : MonoBehaviour
         tilemap = GetComponent<Tilemap>();
     }
 
-    public void Draw(Cell[,] state)
+    public void Draw(Cell[,] state, string textHeader)
     {
         int width = state.GetLength(0);
         int height = state.GetLength(1);
+
+        string boardStr = "";
 
         for (int col = 0; col < width; ++col)
         {
@@ -36,8 +39,28 @@ public class Board : MonoBehaviour
             {
                 Cell cell = state[col, row];
                 tilemap.SetTile(cell.position, GetTile(cell));
+                
+                if (cell.status == Cell.Status.Hidden) {
+                    boardStr += "-2";
+                } else if (cell.status == Cell.Status.Flagged) {
+                    boardStr += "-3";
+                } else {
+                    boardStr += cell.number.ToString();
+                }
+                boardStr += ",";
             }
         }
+        WriteToFile(boardStr, textHeader);
+        Debug.Log(boardStr);
+    }
+
+    private void WriteToFile(string text, string textHeader)
+    {
+        string path = "AISolver/data/board.txt";
+        StreamWriter writer = new StreamWriter(path, false);
+        writer.WriteLine(textHeader);
+        writer.WriteLine(text);
+        writer.Close();
     }
 
     private Tile GetTile(Cell cell)
