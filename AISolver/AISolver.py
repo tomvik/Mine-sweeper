@@ -1,11 +1,18 @@
 from time import sleep
 import keyboard
 import numpy as np
+import pyautogui
 
-width = 0
-height = 0
+width = 16
+height = 16
 totalBombs = 0
 hiddenTilesLeft = 1000
+
+min_pixel_x = 0
+min_pixel_y = 0
+max_pixel_x = 0
+max_pixel_y = 0
+block_delta = 0
 
 BOMB = -1
 HIDDEN = -2
@@ -130,30 +137,105 @@ def GetBestTileToClick(probabilities):
 
     return bestX, bestY
 
-def ClickTile(x, y):
-    print(x, y)
-    pass
+def ClickTile(x, y, left):
+    global min_pixel_x
+    global min_pixel_y
+    global max_pixel_x
+    global max_pixel_y
+    global block_delta
+
+    if (x == -1):
+        return
+
+    if (left):
+        pyautogui.leftClick(min_pixel_x + (x * block_delta) + (.2 * block_delta), min_pixel_y + (y * block_delta) + (.2 * block_delta))
+    else:
+        pyautogui.rightClick(min_pixel_x + (x * block_delta)+ (.2 * block_delta), min_pixel_y + (y * block_delta)+ (.2 * block_delta))
+    # print(x, y)
+
+def GetRandomTileToClick(board):
+    for col in range(width):
+        for row in range(height):
+            if board[col, row] == HIDDEN:
+                return col, row
+    return -1, -1
+
 
 def SolveMineSweeper():
-    while (hiddenTilesLeft != totalBombs and not (keyboard.read_key() == "q")):
-        sleep(0.1)
+    while (hiddenTilesLeft != totalBombs): # and not (keyboard.read_key() == "q")):
+        sleep(0.3)
         try:
             board = ReadBoard()
             # print(board)
         except:
-            print("no file")
+            # print("no file")
             continue
 
-        print(board)
+        # print(board)
 
         probabilities = GetProbabilites(board)
-        print(probabilities)
+        # print(probabilities)
 
-        x, y = GetBestTileToFlag(probabilities)
-        print("Best tile to flag:", x, y)
+        # file = open("data/moves.txt", "w")
 
-        x, y = GetBestTileToClick(probabilities)
-        print("Best tile to click:", x, y)
+        flag_x, flag_y = GetBestTileToFlag(probabilities)
+        ClickTile(flag_y, flag_x, False)
+        # print("Best tile to flag:", flag_x, flag_y)
+        # file.write("{},{}\n".format(x, y))
+
+        click_x, click_y = GetBestTileToClick(probabilities)
+        ClickTile(click_y, click_x, True)
+        # print("Best tile to click:", click_x, click_y)
+        # file.write("{},{}".format(x, y))
+
+        if (flag_x == -1 and click_y == -1):
+            click_x, click_y = GetRandomTileToClick(board)
+            ClickTile(click_y, click_x, True)
+            # print("Random tile to click:", click_x, click_y)
+
+        # file.close()
+
+def GetBoardCoordinates():
+    global min_pixel_x
+    global min_pixel_y
+    global max_pixel_x
+    global max_pixel_y
+    global block_delta
+    global width
+
+    print("Locate the mouse in the first block and click x when ready")
+    while True:
+        # Check if x key is pressed
+        sleep(0.1)
+
+        if keyboard.is_pressed('x'):
+            print('x key pressed...')
+            break
+
+    x, y = pyautogui.position()
+    print(f'spam at position: {x}, {y}')
+    min_pixel_x = x
+    min_pixel_y = y
+
+    sleep(1)
+
+    
+    print("Locate the mouse in the lasy block and click x when ready")
+    while True:
+        # Check if x key is pressed
+        sleep(0.1)
+
+        if keyboard.is_pressed('x'):
+            print('x key pressed...')
+            break
+
+    x, y = pyautogui.position()
+    print(f'spam at position: {x}, {y}')
+    max_pixel_x = x
+    max_pixel_y = y
+
+    block_delta = ((max_pixel_x - min_pixel_x) + (max_pixel_y - min_pixel_y)) / 2 / (width-1)
 
 if __name__ == "__main__":
+    GetBoardCoordinates()
     SolveMineSweeper()
